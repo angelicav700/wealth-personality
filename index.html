@@ -714,30 +714,57 @@ function drawDimBars(ctx,W,startY,barW,barH,gap,labelSize,scoreSize,labelX,arch)
   const maxIdx=scores.indexOf(maxScore);
   const range=maxScore-minScore;
   const isFlat=range<10;
+  // 刻度标尺: 0/25/50/75/100
+  const rulerY=startY-2;
+  const tickVals=[0,25,50,75,100];
+  ctx.font=(labelSize*0.7)+'px "PingFang SC","Microsoft YaHei",sans-serif';
+  ctx.fillStyle='#94A3B8';
+  ctx.textAlign='center';
+  tickVals.forEach(function(v){
+    const tx=labelX+barW*0.02+(v/100)*barW;
+    ctx.fillText(v,tx,rulerY);
+  });
+  ctx.textAlign='right';
   for(let i=0;i<5;i++){
     const y=startY+i*gap;
     ctx.fillStyle='#1E293B';ctx.font='bold '+labelSize+'px "PingFang SC","Microsoft YaHei",sans-serif';
     ctx.fillText(dimensionEmojis[i]+' '+dimensionLabels[i],labelX,y+barH*0.65);
     ctx.fillStyle='#E2E8F0';ctx.roundRect(labelX+barW*0.02,y,barW,barH,barH*0.5);ctx.fill();
     const pct=scores[i]/100;
-    ctx.fillStyle=dimensionColors[i];ctx.roundRect(labelX+barW*0.02,y,Math.max(barH,pct*barW),barH,barH*0.5);ctx.fill();
-    // 高亮最高分:加星标
+    // 加大填充宽度,使用稍深的填充以提升可见度
+    const fillW=Math.max(barH,pct*barW);
+    ctx.fillStyle=dimensionColors[i];ctx.roundRect(labelX+barW*0.02,y,fillW,barH,barH*0.5);ctx.fill();
+    // 高亮最高分:加星标 + 维度标签变色
     if(i===maxIdx&&!isFlat){
-      ctx.fillStyle=dimensionColors[i];ctx.font='bold '+Math.round(scoreSize*1.1)+'px sans-serif';
-      ctx.textAlign='left';ctx.fillText('★',labelX+barW*1.02,y+barH*0.65);
+      ctx.fillStyle=dimensionColors[i];ctx.font='bold '+Math.round(scoreSize*1.15)+'px sans-serif';
+      ctx.textAlign='left';ctx.fillText('★',labelX+barW*1.02,y+barH*0.7);
     }
     ctx.fillStyle='#1E293B';ctx.font='bold '+scoreSize+'px "PingFang SC","Microsoft YaHei",sans-serif';
-    ctx.textAlign='left';ctx.fillText(scores[i]+'分',labelX+barW*1.10,y+barH*0.65);
+    ctx.textAlign='left';ctx.fillText(scores[i]+'分',labelX+barW*1.12,y+barH*0.65);
     ctx.textAlign='right';
   }
-  // 人格一句话总结
+  // 人格一句话总结 - 加大卡片
   let nextY=startY+5*gap;
   if(arch&&arch.tagline){
-    const sumY=nextY+gap*0.3;
-    const sumW=W*0.7,sumH=gap*0.9,sumX=(W-sumW)/2;
-    ctx.fillStyle='rgba(81,98,240,0.08)';ctx.roundRect(sumX,sumY,sumW,sumH,sumH*0.3);ctx.fill();
-    ctx.fillStyle='#5162F0';ctx.font=Math.round(labelSize*0.95)+'px "PingFang SC","Microsoft YaHei",sans-serif';
-    ctx.textAlign='center';ctx.fillText('"'+arch.tagline+'"',W/2,sumY+sumH*0.62);
+    const sumY=nextY+gap*0.4;
+    const sumW=W*0.86,sumH=gap*1.1,sumX=(W-sumW)/2;
+    // 渐变背景
+    const grad=ctx.createLinearGradient(sumX,sumY,sumX+sumW,sumY);
+    grad.addColorStop(0,'rgba(81,98,240,0.12)');
+    grad.addColorStop(1,'rgba(124,58,237,0.12)');
+    ctx.fillStyle=grad;
+    ctx.roundRect(sumX,sumY,sumW,sumH,sumH*0.2);ctx.fill();
+    // 边框
+    ctx.strokeStyle='rgba(81,98,240,0.3)';ctx.lineWidth=1.5;
+    ctx.roundRect(sumX,sumY,sumW,sumH,sumH*0.2);ctx.stroke();
+    // 引言标点
+    ctx.fillStyle='#5162F0';ctx.font='bold '+Math.round(labelSize*1.1)+'px Georgia,serif';
+    ctx.textAlign='left';ctx.fillText('"',sumX+sumH*0.3,sumY+sumH*0.4);
+    ctx.fillText('"',sumX+sumW-sumH*0.3,sumY+sumH*0.85);
+    // 文字
+    ctx.fillStyle='#3730A3';ctx.font='bold '+Math.round(labelSize*1.05)+'px "PingFang SC","Microsoft YaHei",sans-serif';
+    ctx.textAlign='center';
+    ctx.fillText(arch.tagline,W/2,sumY+sumH*0.55);
     nextY=sumY+sumH;
   }
   // 剖面形状提示
@@ -745,9 +772,9 @@ function drawDimBars(ctx,W,startY,barW,barH,gap,labelSize,scoreSize,labelX,arch)
   if(isFlat){
     hint='📊 剖面较均匀（极差仅'+range+'分）—— 你是'+(arch?(arch.name):'')+'型人格，五维均衡发展';
   }else{
-    hint='📊 五维最高分：'+dimensionLabels[maxIdx]+'（'+maxScore+'分），最低分：'+dimensionLabels[scores.indexOf(minScore)]+'（'+minScore+'分）';
+    hint='📊 五维最高：'+dimensionLabels[maxIdx]+'('+maxScore+'分) ｜ 最低：'+dimensionLabels[scores.indexOf(minScore)]+'('+minScore+'分)';
   }
-  const hintY=nextY+gap*0.2;
+  const hintY=nextY+gap*0.3;
   const hintW=W*0.86,hintH=gap*0.7,hintX=(W-hintW)/2;
   ctx.fillStyle='rgba(100,116,139,0.08)';ctx.roundRect(hintX,hintY,hintW,hintH,hintH*0.3);ctx.fill();
   ctx.fillStyle='#64748B';ctx.font=Math.round(labelSize*0.85)+'px "PingFang SC","Microsoft YaHei",sans-serif';
@@ -816,5 +843,5 @@ function copyShareLink(){
 
 document.querySelectorAll('.likert-btn').forEach(btn=>{btn.addEventListener('click',()=>selectAnswer(parseInt(btn.dataset.val)));});
 </script>
-</body>
+<!-- build:20260812-142837 --></body>
 </html>
