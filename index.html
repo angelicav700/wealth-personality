@@ -714,26 +714,44 @@ function drawDimBars(ctx,W,startY,barW,barH,gap,labelSize,scoreSize,labelX,arch)
   const maxIdx=scores.indexOf(maxScore);
   const range=maxScore-minScore;
   const isFlat=range<10;
-  // 刻度标尺: 0/25/50/75/100
-  const rulerY=startY-2;
+  // 刻度线(只有竖线,无数字): 0/25/50/75/100
+  const rulerY=startY-6;
+  const rulerH=4;
   const tickVals=[0,25,50,75,100];
-  ctx.font=(labelSize*0.7)+'px "PingFang SC","Microsoft YaHei",sans-serif';
-  ctx.fillStyle='#94A3B8';
-  ctx.textAlign='center';
+  ctx.fillStyle='#CBD5E1';
+  ctx.strokeStyle='#CBD5E1';ctx.lineWidth=1;
+  const rulerLeft=labelX+barW*0.02;
   tickVals.forEach(function(v){
-    const tx=labelX+barW*0.02+(v/100)*barW;
-    ctx.fillText(v,tx,rulerY);
+    const tx=rulerLeft+(v/100)*barW;
+    ctx.beginPath();ctx.moveTo(tx,rulerY);ctx.lineTo(tx,rulerY+rulerH);ctx.stroke();
   });
   ctx.textAlign='right';
   for(let i=0;i<5;i++){
     const y=startY+i*gap;
     ctx.fillStyle='#1E293B';ctx.font='bold '+labelSize+'px "PingFang SC","Microsoft YaHei",sans-serif';
     ctx.fillText(dimensionEmojis[i]+' '+dimensionLabels[i],labelX,y+barH*0.65);
-    ctx.fillStyle='#E2E8F0';ctx.roundRect(labelX+barW*0.02,y,barW,barH,barH*0.5);ctx.fill();
+    // 背景条 - 浅灰
+    ctx.fillStyle='#E2E8F0';
+    const bgX=labelX+barW*0.02,bgW=barW;
+    ctx.beginPath();
+    ctx.moveTo(bgX+barH*0.5,y);ctx.lineTo(bgX+bgW-barH*0.5,y);
+    ctx.arc(bgX+bgW-barH*0.5,y+barH*0.5,barH*0.5,Math.PI*1.5,Math.PI*0.5);
+    ctx.lineTo(bgX+barH*0.5,y+barH);ctx.arc(bgX+barH*0.5,y+barH*0.5,barH*0.5,Math.PI*0.5,Math.PI*1.5);
+    ctx.closePath();ctx.fill();
+    // 填充条 - 用渐变色,从dimColor渐变到稍暗
     const pct=scores[i]/100;
-    // 加大填充宽度,使用稍深的填充以提升可见度
     const fillW=Math.max(barH,pct*barW);
-    ctx.fillStyle=dimensionColors[i];ctx.roundRect(labelX+barW*0.02,y,fillW,barH,barH*0.5);ctx.fill();
+    const fX=labelX+barW*0.02;
+    const dimColor=dimensionColors[i];
+    const grad=ctx.createLinearGradient(fX,y,fX+fillW,y);
+    grad.addColorStop(0,dimColor);
+    grad.addColorStop(1,dimColor+'CC');
+    ctx.fillStyle=grad;
+    ctx.beginPath();
+    ctx.moveTo(fX+barH*0.5,y);ctx.lineTo(fX+fillW-barH*0.5,y);
+    ctx.arc(fX+fillW-barH*0.5,y+barH*0.5,barH*0.5,Math.PI*1.5,Math.PI*0.5);
+    ctx.lineTo(fX+barH*0.5,y+barH);ctx.arc(fX+barH*0.5,y+barH*0.5,barH*0.5,Math.PI*0.5,Math.PI*1.5);
+    ctx.closePath();ctx.fill();
     // 高亮最高分:加星标 + 维度标签变色
     if(i===maxIdx&&!isFlat){
       ctx.fillStyle=dimensionColors[i];ctx.font='bold '+Math.round(scoreSize*1.15)+'px sans-serif';
@@ -843,5 +861,5 @@ function copyShareLink(){
 
 document.querySelectorAll('.likert-btn').forEach(btn=>{btn.addEventListener('click',()=>selectAnswer(parseInt(btn.dataset.val)));});
 </script>
-<!-- build:20260812-142837 --></body>
+<!-- build:20260812-144330 --></body>
 </html>
