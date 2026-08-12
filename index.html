@@ -242,7 +242,7 @@ body{
         <button class="platform-btn" onclick="genShareImg('qq')"><span class="pf-icon">🐧</span><span>QQ</span></button>
       </div>
       <div id="shareImageWrap" class="share-image-wrap hidden">
-        <p class="share-prompt" id="sharePrompt">👇 长按图片保存</p>
+        
         <img id="shareImage" class="share-image" alt="分享图" />
         <p class="share-tip" id="shareTip">保存后打开对应App发布</p>
         <button class="btn btn-sm btn-outline" onclick="downloadShareImg()" style="margin-top:8px">💾 下载原图</button>
@@ -643,7 +643,6 @@ let currentCanvas=null,currentPlatform='';
 function genShareImg(platform){
   currentPlatform=platform;
   const cfg=shareConfigs[platform];
-  QS('sharePrompt').textContent='👇 长按保存 — 适配「'+cfg.label+'」尺寸';
   QS('shareTip').innerHTML=cfg.tip;
 
   const canvas=document.createElement('canvas');
@@ -861,5 +860,5 @@ function copyShareLink(){
 
 document.querySelectorAll('.likert-btn').forEach(btn=>{btn.addEventListener('click',()=>selectAnswer(parseInt(btn.dataset.val)));});
 </script>
-<!-- build:20260812-144330 --></body>
+<!-- build:20260812-150954 --></body>
 </html>
