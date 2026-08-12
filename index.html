@@ -81,7 +81,7 @@ body{
 
 .result-screen{display:none;flex-direction:column;align-items:center}
 .result-screen.active{display:flex}
-.result-hero{text-align:center;padding:32px 0 24px}
+.result-hero{text-align:center;padding:32px 0 24px}.hero-shared{padding:48px 24px 56px;background:linear-gradient(135deg,#5162F0 0%,#7C3AED 100%);color:#fff;border-radius:28px;margin-bottom:20px}.hero-shared .result-badge{background:rgba(255,255,255,0.18);color:#fff}.hero-shared .result-emoji{font-size:120px;line-height:1.1}.hero-shared .result-name{font-size:42px;color:#fff;margin:14px 0 8px}.hero-shared .result-sub{font-size:16px;color:rgba(255,255,255,0.85)}
 .result-badge{font-size:12px;background:#EEF2FF;color:var(--gold);padding:5px 14px;border-radius:50px;letter-spacing:2px;display:inline-block;margin-bottom:16px;font-weight:600}
 .result-emoji{font-size:72px;margin-bottom:10px}
 .result-name{font-size:30px;font-weight:900;margin-bottom:4px;color:var(--text)}
@@ -296,6 +296,8 @@ function showSharedResult(){
   if(radarChart){radarChart.destroy();radarChart=null;}
   var match=matchArchetype();var arch=archetypes[match.primary];
   QS('sharedBanner').classList.remove('hidden');
+  // 放大核心 hero
+  document.querySelector('.result-hero').classList.add('hero-shared');
   QS('resultEmoji').textContent=arch.emoji;
   QS('resultName').textContent=arch.name;
   QS('resultSub').textContent=arch.sub;
@@ -307,11 +309,19 @@ function showSharedResult(){
     var desc=getDimDesc(i,s);
     return '<div class="dim-card"><div class="dc-header"><span class="dc-name">'+dimensionEmojis[i]+' '+dimensionLabels[i]+'</span><span class="dc-score" style="color:'+dimensionColors[i]+'">'+s+'分 · '+level+'</span></div><div class="dc-bar"><div class="dc-fill" style="width:'+s+'%;background:'+dimensionColors[i]+'"></div></div><div class="dc-desc">'+desc+'</div></div>';
   }).join('');
-  QS('fullReport').innerHTML=getReport(match.primary);
-  // Hide share image if any
-  var siw=QS('shareImageWrap');if(siw)siw.classList.add('hidden');
-  // Update share label for shared view
-  try{QS('shareLabel').innerHTML='🔥 TA是<strong>'+arch.emoji+' '+arch.name+'</strong>，你的呢？';}catch(e){}
+  // 共享视图：隐藏深度报告、分享按钮，只显示人格概览
+  var fr=QS('fullReport');if(fr)fr.classList.add('hidden');
+  var ss=document.querySelector('.share-section');if(ss)ss.classList.add('hidden');
+  // 把重新测试按钮单独提到末尾，隐藏它的 wrapper（共享视图不重新测）
+  var ghosts=document.querySelectorAll('button.btn-ghost.btn-full');
+  ghosts.forEach(function(b){if(b.textContent.indexOf('重新测试')>=0)b.parentElement&&b.parentElement.classList.add('hidden');});
+  // 共享视图底部加一个"我也测一测"CTA
+  var heroCta=document.createElement('div');
+  heroCta.id='sharedCta';
+  heroCta.style.cssText='text-align:center;margin:24px auto 8px;padding:18px;background:linear-gradient(135deg,#5162F0,#7C3AED);border-radius:16px;color:#fff;cursor:pointer;box-shadow:0 8px 24px rgba(81,98,240,0.35)';
+  heroCta.innerHTML='<div style="font-size:20px;font-weight:800;margin-bottom:6px">🔥 看看你是哪种财富人格？</div><div style="font-size:13px;opacity:0.9">60道专业量表 · 10分钟 · 18种人格原型</div>';
+  heroCta.onclick=function(){location.href=location.origin+location.pathname;};
+  QS('resultScreen').appendChild(heroCta);
   window.scrollTo({top:0,behavior:'smooth'});
   setTimeout(function(){document.querySelectorAll('.dc-fill').forEach(function(el){var w=el.style.width;el.style.width='0%';setTimeout(function(){el.style.width=w;},50);});},600);
 }
@@ -543,6 +553,12 @@ function matchArchetype(){
 function showResult(){
   hideAll();
   const rs=QS('resultScreen');rs.classList.remove('hidden');rs.classList.add('active');
+  // 清理共享视图残留
+  var _hero=document.querySelector('.result-hero');if(_hero)_hero.classList.remove('hero-shared');
+  var _fr=QS('fullReport');if(_fr)_fr.classList.remove('hidden');
+  var _ss=document.querySelector('.share-section');if(_ss)_ss.classList.remove('hidden');
+  var _sc=QS('sharedCta');if(_sc)_sc.remove();
+  document.querySelectorAll('button.btn-ghost.btn-full').forEach(function(b){if(b.textContent.indexOf('重新测试')>=0&&b.parentElement)b.parentElement.classList.remove('hidden');});
   if(radarChart){radarChart.destroy();radarChart=null;}
   const match=matchArchetype();const arch=archetypes[match.primary];
 
