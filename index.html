@@ -251,13 +251,17 @@ body{
 
     <button class="btn btn-ghost btn-full" onclick="restartTest()">🔄 重新测试</button>
   </div>
-    <button class="btn btn-ghost btn-full" onclick="restartTest()">🔄 重新测试</button>
-  </div>
 </div>
 
 </div>
 
 <script>
+// ==================== STATE (must be declared before all functions) ====================
+let answers = new Array(60).fill(null);
+let currentQ = 0;
+let scores = [0,0,0,0,0];
+let radarChart = null;
+
 // ==================== URL参数检测 ====================
 (function(){
   var p=new URLSearchParams(location.search);
@@ -441,10 +445,6 @@ function getReport(idx){
 
 <!-- ====== SCRIPTS ====== -->
 <script>
-let answers = new Array(30).fill(null);
-let currentQ = 0;
-let scores = [0,0,0,0,0];
-let radarChart = null;
 
 function reverseScore(v){return 6-v;}
 
@@ -691,7 +691,7 @@ function drawCommonHeader(ctx,arch,W,H,emojiSize,nameSize,subSize){
   return divY+Math.round(H*0.025);
 }
 
-function drawDimBars(ctx,W,startY,barW,barH,gap,labelSize,scoreSize,labelX){
+function drawDimBars(ctx,W,startY,barW,barH,gap,labelSize,scoreSize,labelX,arch){
   ctx.textAlign='right';
   for(let i=0;i<5;i++){
     const y=startY+i*gap;
@@ -704,6 +704,16 @@ function drawDimBars(ctx,W,startY,barW,barH,gap,labelSize,scoreSize,labelX){
     ctx.textAlign='left';ctx.fillText(scores[i]+'分',labelX+barW*1.06,y+barH*0.65);
     ctx.textAlign='right';
   }
+  // 人格一句话总结
+  if(arch&&arch.tagline){
+    const sumY=startY+5*gap+gap*0.5;
+    const sumW=W*0.64,sumH=gap*0.85,sumX=(W-sumW)/2;
+    ctx.fillStyle='rgba(81,98,240,0.08)';ctx.roundRect(sumX,sumY,sumW,sumH,sumH*0.3);ctx.fill();
+    ctx.fillStyle='#5162F0';ctx.font=Math.round(labelSize*0.9)+'px "PingFang SC","Microsoft YaHei",sans-serif';
+    ctx.textAlign='center';ctx.fillText('" '+arch.tagline+' "',W/2,sumY+sumH*0.65);
+    return sumY+sumH;
+  }
+  return startY+5*gap;
 }
 
 function drawCTA(ctx,W,ctaY,ctaW,ctaH,titleSize,descSize){
@@ -711,7 +721,7 @@ function drawCTA(ctx,W,ctaY,ctaW,ctaH,titleSize,descSize){
   ctx.fillStyle='#5162F0';ctx.font='bold '+titleSize+'px "PingFang SC","Microsoft YaHei",sans-serif';
   ctx.textAlign='center';ctx.fillText('测测你的财富人格',W/2,ctaY+ctaH*0.4);
   ctx.fillStyle='#64748B';ctx.font=descSize+'px "PingFang SC","Microsoft YaHei",sans-serif';
-  ctx.fillText('60道量表 · 5维剖面 · 8种原型',W/2,ctaY+ctaH*0.7);
+  ctx.fillText('60道量表 · 5维剖面 · 18种原型',W/2,ctaY+ctaH*0.7);
 }
 
 function drawFooter(ctx,W,H,size){
@@ -723,8 +733,8 @@ function drawSquareLayout(ctx,arch,W,H){
   const emojiS=120,nameS=56,subS=28;
   const barsY=drawCommonHeader(ctx,arch,W,H,emojiS,nameS,subS);
   const barW=W*0.5,barH=24,gap=42,labelX=W*0.27,labelS=20,scoreS=18;
-  drawDimBars(ctx,W,barsY,barW,barH,gap,labelS,scoreS,labelX);
-  const ctaY=barsY+5*gap+H*0.04,ctaW=W*0.74,ctaH=H*0.1;
+  const afterBars=drawDimBars(ctx,W,barsY,barW,barH,gap,labelS,scoreS,labelX,arch);
+  const ctaY=afterBars+gap*0.3,ctaW=W*0.74,ctaH=H*0.1;
   drawCTA(ctx,W,ctaY,ctaW,ctaH,26,20);
   drawFooter(ctx,W,H,18);
 }
@@ -733,8 +743,8 @@ function drawPortraitLayout(ctx,arch,W,H){
   const emojiS=Math.round(H*0.14),nameS=Math.round(H*0.06),subS=Math.round(H*0.03);
   const barsY=drawCommonHeader(ctx,arch,W,H,emojiS,nameS,subS);
   const barW=W*0.52,barH=Math.round(H*0.024),gap=Math.round(H*0.048),labelX=W*0.24,labelS=Math.round(H*0.022),scoreS=Math.round(H*0.02);
-  drawDimBars(ctx,W,barsY,barW,barH,gap,labelS,scoreS,labelX);
-  const ctaY=barsY+5*gap+H*0.02,ctaW=W*0.78,ctaH=H*0.09;
+  const afterBars=drawDimBars(ctx,W,barsY,barW,barH,gap,labelS,scoreS,labelX,arch);
+  const ctaY=afterBars+gap*0.3,ctaW=W*0.78,ctaH=H*0.09;
   drawCTA(ctx,W,ctaY,ctaW,ctaH,Math.round(H*0.026),Math.round(H*0.02));
   drawFooter(ctx,W,H,Math.round(H*0.018));
 }
@@ -743,8 +753,8 @@ function drawVerticalLayout(ctx,arch,W,H){
   const emojiS=Math.round(H*0.14),nameS=Math.round(H*0.058),subS=Math.round(H*0.028);
   const barsY=drawCommonHeader(ctx,arch,W,H,emojiS,nameS,subS);
   const barW=W*0.55,barH=Math.round(H*0.024),gap=Math.round(H*0.054),labelX=W*0.22,labelS=Math.round(H*0.024),scoreS=Math.round(H*0.022);
-  drawDimBars(ctx,W,barsY,barW,barH,gap,labelS,scoreS,labelX);
-  const ctaY=barsY+5*gap+H*0.03,ctaW=W*0.82,ctaH=H*0.09;
+  const afterBars=drawDimBars(ctx,W,barsY,barW,barH,gap,labelS,scoreS,labelX,arch);
+  const ctaY=afterBars+gap*0.3,ctaW=W*0.82,ctaH=H*0.09;
   drawCTA(ctx,W,ctaY,ctaW,ctaH,Math.round(H*0.028),Math.round(H*0.022));
   // Extra spacing for vertical format
   ctx.fillStyle='#5162F0';ctx.font='bold '+Math.round(H*0.026)+'px "PingFang SC","Microsoft YaHei",sans-serif';
