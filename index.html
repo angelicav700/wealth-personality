@@ -144,15 +144,6 @@ body{
 .share-image-wrap .share-tip{font-size:11px;color:var(--text3);margin-top:8px}
 .share-image{width:100%;max-width:400px;border-radius:var(--radius);box-shadow:var(--shadow-md)}
 
-/* Unlock Report */
-.unlock-section{width:100%;background:linear-gradient(135deg,#EEF2FF,#E0E7FF);border:1.5px solid #C7D2FE;border-radius:var(--radius);padding:24px 18px;margin-bottom:14px;text-align:center}
-.unlock-title{font-size:18px;font-weight:800;color:var(--gold);margin-bottom:8px}
-.unlock-sub{font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:6px}
-.unlock-price{font-size:12px;color:var(--text3);margin-bottom:16px}
-.unlock-input{width:100%;padding:13px 14px;border:1.5px solid var(--border);border-radius:12px;font-size:15px;text-align:center;letter-spacing:1px;margin-bottom:12px;outline:none;background:#fff;font-family:inherit;text-transform:uppercase}
-.unlock-input:focus{border-color:var(--gold)}
-.unlock-tip{font-size:12px;margin-top:12px;min-height:18px;color:#EF4444}
-.unlock-tip.ok{color:#16A34A}
 .compliance-note{width:100%;text-align:center;font-size:11px;color:var(--text3);margin:8px 0 28px}
 .hidden{display:none!important}
 .fade-in{animation:fadeIn .45s ease}
@@ -184,7 +175,7 @@ body{
   </div>
   <div class="trust-row"><span>🔬 基于 Big Five / RIASEC / 行为经济学 / Klontz金钱脚本 / Schein职业锚 / IKIGAI</span></div>
   <button class="btn btn-primary btn-full" onclick="startTest()">⚡ 开始专业测评</button>
-  <p style="font-size:11px;color:var(--text3);margin-top:16px">60道心理量表 · 12题/维度 · 5点李克特评分 · 免费测 · 完整报告 0.99 解锁</p>
+  <p style="font-size:11px;color:var(--text3);margin-top:16px">60道心理量表 · 12题/维度 · 5点李克特评分 · 免费测 · 完整报告免费看</p>
 </div>
 
 <!-- ====== QUESTION SCREEN ====== -->
@@ -233,16 +224,7 @@ body{
   <div class="dim-cards" id="dimCards"></div>
 
   <!-- Full Deep Report -->
-    <!-- Unlock Full Report -->
-  <div id="unlockSection" class="unlock-section hidden">
-    <div class="unlock-title">🔓 解锁完整版报告</div>
-    <div class="unlock-sub">完整核心解读 · 三阶段搞钱路线图 · 最佳搭档与暗面 · 专属书单</div>
-    <div class="unlock-price">0.99 元 · 小红书店铺购买后获得兑换码</div>
-    <input id="codeInput" class="unlock-input" type="text" placeholder="输入兑换码，如 A3F9-XK2D-7Q5M" maxlength="17" autocomplete="off" spellcheck="false" />
-    <button class="btn btn-primary btn-full" onclick="unlockReport()">🔓 解锁完整报告</button>
-    <p class="unlock-tip" id="unlockTip"></p>
-  </div>
-  <div id="fullReport" style="width:100%"></div>
+    <div id="fullReport" style="width:100%"></div>
 
   <!-- Share & Restart -->
   <div class="share-section">
@@ -336,7 +318,6 @@ function showSharedResult(){
   }).join('');
   // 共享视图：隐藏深度报告、分享按钮，只显示人格概览
   var fr=QS('fullReport');if(fr)fr.classList.add('hidden');
-  var us=QS('unlockSection');if(us)us.classList.add('hidden');
   var ss=document.querySelector('.share-section');if(ss)ss.classList.add('hidden');
   // 把重新测试按钮单独提到末尾，隐藏它的 wrapper（共享视图不重新测）
   var ghosts=document.querySelectorAll('button.btn-ghost.btn-full');
@@ -664,8 +645,6 @@ function showResult(){
   // Full report
   QS('fullReport').innerHTML=getReport(match.primary);
 
-  // 解锁状态：默认隐藏完整报告，解锁后显示
-  applyUnlockState();
 
   // Hide previous share image
   QS('shareImageWrap').classList.add('hidden');
@@ -706,78 +685,6 @@ function toggleReport(header){
   body.classList.toggle('hidden');
   arrow.textContent=body.classList.contains('hidden')?'▾':'▴';
 }
-
-// ==================== 兑换码解锁系统 ====================
-const REDEEM_HASHES=new Set([
-  "2bac4d4da4e1e14403b6e66dbeedcc4a454d1377ce1510a2a02a002222780d95","b4811981b8a6cb6e3574358b7da039d021da9ed407aa493b96ec58707ee71b5d","d9284c2baac01acb7a59faf121872651bac7edc36ec1c150a138024e8a75f50d","b640e9cdbf31be32aee6b3c2137df9cedc7a8aa68dc31c8e32f4e5bc8507bd15",
-  "c635a1a0f4613b3ee180bc046506c966dd950fa866a464a29c289530925cc921","03f519865cffc5f3c30cdbc7ab6706679240455b8a5109cf150274bb72f73c05","035d096903b8d15275ca90bcfba6b72bb5ec7b3f6ea9bc249ebe465a5f7d4393","e7c373a59e49ff9fde3543134ad1380eba1f47e9c0edfabce57910b96af6d7ab",
-  "26db756993582183194cbb7103b491376cb900cef14c5c93cca4d363a0204540","29d1963684772f19c10e45dc8375c46ecde7565eb0f65077bb559e36b59a7fff","86c53d921b790410151b27b2994531371abdcf84f70d417b5659d54a0e8521ef","6f68c6ebe0c34a3ddf16c750454329ba4a27d43d31154e8bfc0bca98b60b1680",
-  "f1e8e5be7f7d853d5f1cd74898cc81044d6194fba1373ba70454226c59b90285","eb5f6e2237a1ed31deae0391f604f77ae0f57dd246e3f25b7e49ef2704f90019","3da2f0ddad13a257cd6222a7c53d26cf253bb2515c1733b79f8b909a22724bd1","22ee72e301cb7a2baec29f661c13331421475d62cb0d0b7d33b8286a35fff15f",
-  "345efa816a8a7799bccb701d5f092b3796d7e4607328f0992bb2f5c10aa66255","8313ed0359d17da4553361139f9c8cfeff9284026b5bf5640445e9e6af0066d2","7b88c8c4ab86f224b9f30fe9fe4bb3ecced4dfa046afa2aed98a76b7ddf67eff","1a704720694d8ae20635da849e5b28250092a92a34d1fc54a93fb85668f30f65",
-  "36651c1b4ba42d8e705c3d0444a636055f0b8002518fe8dcf16c57417f4662fe","e8e023dc4e3ee6de2eb0f3e0130743a28d2f5d48168c2a2d44eaf3b09859f29c","3dfd9c5e0347403240adb2bd0ff3a692694571c1265cc8fda6ca2d3568e0651b","3790a31e01b0da95d1f6be06c53d026f4a7fe96761eda3696ae78ec3610302ca",
-  "5786c53d9faddcf372f1c097fe5c8a14b14958d8ef0dd1dde7e11f8e1b14f86f","cde1d90a2098b1771fc10747684cc1722c8a05e7da6f6c39a867fec5ed121a13","4f14d0e545c507c5749ed52d1f1742cccd9736248a3f1a0fb9aec7dc77dfb93b","b29c4b99bad6dc2d4d92327120de5eabd45b5ad88108686416f3390ef37b3216",
-  "6d1812df2b5ef86ca5f6acd89a084702e9c476c3b4a8683ca39bd043c4481df7","29703dd6dba7e9f0e08c87c0ed01b4731695a1f2a603160d3f4829e9b13ce714","41707e084e31d9675ca3717140830016f299403a6f819660d03a782b0c20bb93","60e6a3c0ea9a03617ece848ca36709bb394f5356c681e84240478483c8f999cf",
-  "b87e5b22a895f466dd07d428e3b9dbd45b84b82db82022e1a2f2ad23e8c6fd44","029dfd934d43144dd201258dedba6d0bc20a4ff8cdb572655958a922b1744183","3cb688e8a6de0b7619d62897b763f5f9a681addebd011836a63e710b38c3f4bc","63c63d8548ecb54c411864f9be7e5051ef68768f9213dade4ab0fdc58a3ae13d",
-  "5d3bbcc6e03ed5528c2697e5bd762b46686138e6b7a3e177eb4fabfe04d5cd5d","2a7bdffd5c27c68831406de66a81e28dcdc8e1b66107bcefd9e9f732400d5458","d21dbe63733658ba1e3c5665c75e8c8f93561ce2b06c631933735e2e5e9d843f","7f1210695b01b0dcdceeb9b2442c691e69ef0ec6b7c06a70241c582292345437",
-  "3f80b2c90bb11c93acb151aff68a664849905d1c6be794a090bc67288ceaf531","bf110c0a6b90d8471543a64914cf67720428246dfa1c561db3e2231462660187","50dc6d014a88d167191c97222079cb10a653bceb5d12559bbc5dc632c88e608e","2fbea7e620967f887f8c79871972579c88050450c74bbd83864a2809463293b0",
-  "98628c6402d4b629bc776d886bf1e8cea96e034ba5e5482f86acac29fc105fe5","1aa2fe38fb498e519e4492beebf03687ad369b3a7e6f272f2ea260f24c1e42d7","2eee618313d683096709fcf9915342c751b1b943ee508b5fc41f5ed1e409dcf9","4f184e8a74d83f1e40b99529052167f116dd764f37f5795cfffb3b12decefcc9",
-  "03d1cdfed67c9548c26da74f3c352ab400c00783a8bb62ebb54faca1de75fd20","ef7016148ad8c440e32e01796839fc43fe65e2000725232075508a0dde9b3e22","46c0faf02fbdcd7c5941933328a4159110a37da76f99ba205e3ab5c6bd59b944","032a91d03b4be090089b8d45e8836a3aad88274077ae31e1184a40266ac3db32",
-  "1e02e6971ec9bac344627d6f7bd64c965e47b57f7d9c8fb185df22f89c533254","44b04810c14e6eb3d096aeaee00b694cb876709195ba9a28f9a4b6ec8aa53e0f","0e3ce620101ec4774b2273275b92327fb5f8b8650a7443a8606cf48d077d03c7","5414d3219d50feb2a7bc1da21561d7933777aa4bcc4394d567e4b3883c00aaeb",
-  "b6b1fdd93bbde26cd6ad04b1e95f73efd02f3077c89c387ce8781a3116c9e8cf","72174a559e92b5f8ceaab08457b90a007d32e23db37ae6970b739f9a6e179980","56473a86a2a41d35d8de4cd51be3598fca1cd8608b59ce63644e86116c48b114","d9ff3a7ad46924dc213b7a514cc62de0b77611677fd1fe529deac05409c99223",
-  "4034c59dfb501a877a412d082b0dbf28fe412669c326ec7a1d4862631a6bb156","cd869b01d8c0d6917fcde9586cfe6bf23126c2463f0a0d50b3218891554200a8","2cd13231fe2831fea619377ff9e1f51e2e938b6ce3eb5b368236ef087e0a3b71","5d08b25af7739ffb74889f051bab2bac50818899b634787ccc56e477247c90c7",
-  "525f96bc15f5cf2848da3e2940f1ebcf93ae48ba7504aebd4fed9fa027ca5bc8","83b68aa346c5f8cc133bb4ce8d18b5f859e42d70c6c2975f057609e1bfd565ab","6f27d8554923778827284d3910b36f899ffe64e65a93c1fd9a43c43115bf91f0","72845146e4e8544f9210cc60ac4c9d7739d101d6fb90416ad232bb83a3f9a10d",
-  "54059b6faf327fa518dc717b40197c7f93d311c8b37801d550002c4e20110369","e6d24a49275ecfabda4498fac7f61c2f59d87544d8e205175c5d83e59b93455f","45e8310349083da7f7221f657707e373a8ee335234bb0c6ebbf636e6291a425f","8dd26c5651b8c148cd9ac151f46603afd03d030abc68ab5af10e398b17075fe2",
-  "58e0c1c00c06215f7f9d7491b299124360e9393530306961469ef57bea723db1","66d8f5a8c74853d2255852bde4eab583983004cda350cca22e97803412805114","d3666fdc28c6b91a9e5319823597931074a55abf368cd141b5fccf9f51f2f0d4","a6449f0bdc9d8032878bcfbd9d9a2f7d5f9580a8f40f8a699be5c14722fcb2b0",
-  "45a15bb724ced2851f98c095a6a963fc982f265cb7a6cb1c5c7b803eb6d6c510","69a847860e76c15ff45018cc1de54779e0480ac9f00b81bc554244f7f9affb3d","d989011d819d9feb059a4f9f5a129906bb0d394a9fe6dbba2c662338d1b7fc1e","54912e8377bf92fe975a4596b6032b6dc9111b3de7eed32381a94071e1d3122d",
-  "cf12c5e317421270acc2f1a6fa194694714673e37340d5d9e7801791c4e5aa00","60f88b696c97f4be18749fd41eaf2a595795aec6ec2f9eebb1bcd26ffb0f2913","28fb4f69499b66ac4f311c1fb7c8af6ebfcd77b533dc55b70d50ade85efeb906","4b8fa137b8116cd0044a4330407f474c120f6728d8a219c05dbc9dd33daf9f9c",
-  "8eec6b53ce6f66b2acde3e65ca9cfb2675f39079dcc839056fb1b8770e6e04a1","1554b7a843e72453ff6db9db7d233c7baf4992992a2909413d18dd0bb074dcc9","b0f85d1b99827af56d4ea604ea39e3cf7c96128800f36ece734696b3bf012413","a3082fa0bb09dd6b1f61655b81627541d4b83d651abc3a177d4253fb550259af",
-  "4eac32aa93f01455bb42c366f8069da4d5fbf9b6fe9de5f57e5c61a3cb20412e","8b552f002cfd9aa7bb53d04e402c5ba22be437a01117d54c53534e90e6c00391","7b467002cc217f5f73684b39733c84778a116b067bd975368e0c13bd049dc7c8","c3667a383833a3038c4e1d1d1f1698d284c3abf04ffd7f06d8fd04b717a04b57",
-  "189d9018f062743c7f12b4a342f2ccd5d1d6c184542c8ca69349f21efd05b662","a531f14eeece83bcee54a55f2fa43e8d1593fc6d3454d526bc0f234a27148552","c47fab7a790abafd589bf726f1138ac6b2483e4c96051afc829d902e32459996","97b593b5383f1882dc614f7da7a062022bc44b0f8e112e7a5ee2d46fc4381c0a",
-  "e9f9c05d83659c65317020be05b62f48b6a673c9893c497491ce0ab0045e8301","c84215cce62f2d465c6c12925c6be354cd662bb02482313bbc2990b1523302fc","e1ac2303db358bc12062a7cd9ced7e186fb3fad197beaca38975f9bd3fe57550","1816e9e6e82d0d07af45a1ca4fe9138c228fa44ab668d2d60f727c8bb3620212"
-]);
-
-function sha256Hex(str){
-  if(window.crypto&&window.crypto.subtle){
-    return window.crypto.subtle.digest('SHA-256',new TextEncoder().encode(str)).then(function(buf){
-      return Array.prototype.map.call(new Uint8Array(buf),function(b){return b.toString(16).padStart(2,'0');}).join('');
-    });
-  }
-  return Promise.reject(new Error('crypto unavailable'));
-}
-
-function applyUnlockState(){
-  var fr=QS('fullReport'),us=QS('unlockSection');
-  if(window._sharedView){ if(fr)fr.classList.add('hidden'); if(us)us.classList.add('hidden'); return; }
-  var unlocked=localStorage.getItem('wp_unlocked')==='1';
-  if(unlocked){
-    if(fr)fr.classList.remove('hidden'); if(us)us.classList.add('hidden');
-  }else{
-    if(fr)fr.classList.add('hidden'); if(us)us.classList.remove('hidden');
-    var inp=QS('codeInput'); if(inp)inp.value='';
-    var tip=QS('unlockTip'); if(tip){tip.textContent='';tip.className='unlock-tip';}
-  }
-}
-
-async function unlockReport(){
-  var input=QS('codeInput').value;
-  var normalized=input.toUpperCase().replace(/[\s\-]/g,'');
-  var tip=QS('unlockTip');
-  if(normalized.length!==12){ tip.textContent='兑换码格式不正确，请输入 12 位码'; tip.className='unlock-tip'; return; }
-  var hash;
-  try{ hash=await sha256Hex(normalized); }catch(e){ tip.textContent='当前环境不支持兑换码校验，请在浏览器中打开'; tip.className='unlock-tip'; return; }
-  if(!REDEEM_HASHES.has(hash)){ tip.textContent='兑换码错误，请检查后重试'; tip.className='unlock-tip'; return; }
-  var used=[];
-  try{ used=JSON.parse(localStorage.getItem('wp_used_codes')||'[]'); }catch(e){ used=[]; }
-  if(used.indexOf(hash)>=0){ tip.textContent='该兑换码已使用'; tip.className='unlock-tip'; return; }
-  used.push(hash);
-  localStorage.setItem('wp_used_codes',JSON.stringify(used));
-  localStorage.setItem('wp_unlocked','1');
-  tip.textContent=''; tip.className='unlock-tip';
-  QS('unlockSection').classList.add('hidden');
-  QS('fullReport').classList.remove('hidden');
-  QS('fullReport').scrollIntoView({behavior:'smooth'});
-}
-
 
 // ==================== SHARE IMAGE GENERATION ====================
 const shareConfigs={
