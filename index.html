@@ -747,6 +747,93 @@ function downloadShareImg(){
 }
 
 // ===== LAYOUTS =====
+// ---- shared helpers (核心优势 / 适配方向) ----
+function wrapLines(ctx,text,maxW){
+  const lines=[]; let cur='';
+  for(const ch of text){
+    const t=cur+ch;
+    if(cur && ctx.measureText(t).width>maxW){lines.push(cur); cur=ch;} else cur=t;
+  }
+  if(cur)lines.push(cur); return lines;
+}
+function parseTalent(html){
+  const m=html.match(/^<strong>(.*?)<\/strong>(.*)$/s);
+  return m?{label:m[1].replace(/：$/,'').trim(),desc:m[2].trim()}:{label:'',desc:html.replace(/<[^>]+>/g,'')};
+}
+function parseCareerDirs(html){
+  const m=html.match(/适合的方向（倾向性，非断言）：<\/strong>([\s\S]*?)<\/p>/);
+  if(!m)return '';
+  let dir=m[1].replace(/[。，\s]+$/,'');
+  return dir.trim();
+}
+function _rr(ctx,bx,by,bw,bh,r){
+  ctx.beginPath();
+  ctx.moveTo(bx+r,by); ctx.lineTo(bx+bw-r,by); ctx.arc(bx+bw-r,by+r,r,-Math.PI/2,0);
+  ctx.lineTo(bx+bw,by+bh-r); ctx.arc(bx+bw-r,by+bh-r,r,0,Math.PI/2);
+  ctx.lineTo(bx+r,by+bh); ctx.arc(bx+r,by+bh-r,r,Math.PI/2,Math.PI);
+  ctx.lineTo(bx,by+r); ctx.arc(bx+r,by+r,r,Math.PI,Math.PI*1.5);
+  ctx.closePath();
+}
+// 💪 核心优势
+function drawStrengths(ctx,W,H,startY,arch,maxDescLines){
+  maxDescLines=maxDescLines||2;
+  const padL=Math.round(W*0.024),padR=padL,padT=Math.round(H*0.012),padB=Math.round(H*0.012);
+  const titleH=Math.round(H*0.026);
+  const titleFont=Math.round(W*0.026);
+  const descFont=Math.round(W*0.021);
+  const descLineH=Math.round(descFont*1.25);
+  const rowH=titleFont+descLineH*maxDescLines+4;
+  const totalH=padT+titleH+rowH*3+padB-4;
+  const boxX=W*0.06,boxW=W*0.88,r=Math.round(W*0.018);
+  const grad=ctx.createLinearGradient(boxX,startY,boxX,startY+totalH);
+  grad.addColorStop(0,'rgba(81,98,240,0.08)');grad.addColorStop(1,'rgba(124,58,237,0.06)');
+  ctx.fillStyle=grad;_rr(ctx,boxX,startY,boxW,totalH,r);ctx.fill();
+  ctx.strokeStyle='rgba(81,98,240,0.18)';ctx.lineWidth=1.25;ctx.stroke();
+  ctx.fillStyle='#3730A3';ctx.font='bold '+Math.round(W*0.032)+'px "PingFang SC","Microsoft YaHei",sans-serif';
+  ctx.textAlign='left';ctx.textBaseline='top';ctx.fillText('💪 核心优势',boxX+padL,startY+padT);
+  const talents=(reportData[arch.id]&&reportData[arch.id].talent)||[];
+  const rowX=boxX+padL+12,rowY0=startY+padT+titleH;
+  const descMaxW=boxW-padL-padR-12-6;
+  const accentColors=['#FF6B6B','#A78BFA','#FFD93D'];
+  const tlSize=Math.round(W*0.026),dsSize=Math.round(W*0.021);
+  for(let i=0;i<3;i++){
+    const t=talents[i]?parseTalent(talents[i]):{label:'（待补）',desc:'—'};
+    const rowY=rowY0+i*rowH;
+    ctx.fillStyle=accentColors[i];ctx.fillRect(boxX+padL,rowY+3,4,rowH-12);
+    ctx.fillStyle='#1E293B';ctx.font='bold '+tlSize+'px "PingFang SC","Microsoft YaHei",sans-serif';
+    ctx.textBaseline='top';ctx.fillText(t.label,rowX,rowY);
+    ctx.fillStyle='#475569';ctx.font=dsSize+'px "PingFang SC","Microsoft YaHei",sans-serif';
+    const ls=wrapLines(ctx,t.desc,descMaxW);const maxLines=Math.min(maxDescLines,ls.length);
+    for(let k=0;k<maxLines;k++){ctx.fillText(ls[k],rowX,rowY+Math.round(tlSize*1.15)+k*Math.round(dsSize*1.25));}
+  }
+  ctx.textBaseline='alphabetic';
+  return startY+totalH;
+}
+// 🎯 适配方向
+function drawCareerChip(ctx,W,H,startY,arch){
+  const dirs=parseCareerDirs((reportData[arch.id]&&reportData[arch.id].career)||'');
+  const padL=Math.round(W*0.021),padR=padL,padT=Math.round(H*0.012),padB=Math.round(H*0.012);
+  const titleH=Math.round(H*0.024);
+  const boxX=W*0.06,boxW=W*0.88,r=Math.round(W*0.018);
+  const dirsText=dirs||'综合发展';
+  const dsSize=Math.round(W*0.023);
+  ctx.font=dsSize+'px "PingFang SC","Microsoft YaHei",sans-serif';
+  const ls=wrapLines(ctx,dirsText,boxW-padL-padR);
+  const shownLines=ls.slice(0,2);
+  const lineH=Math.round(dsSize*1.3);
+  const totalH=padT+titleH+shownLines.length*lineH+padB;
+  const grad=ctx.createLinearGradient(boxX,startY,boxX,startY+totalH);
+  grad.addColorStop(0,'rgba(81,98,240,0.08)');grad.addColorStop(1,'rgba(124,58,237,0.06)');
+  ctx.fillStyle=grad;_rr(ctx,boxX,startY,boxW,totalH,r);ctx.fill();
+  ctx.strokeStyle='rgba(81,98,240,0.18)';ctx.lineWidth=1.25;ctx.stroke();
+  ctx.fillStyle='#3730A3';ctx.font='bold '+Math.round(W*0.03)+'px "PingFang SC","Microsoft YaHei",sans-serif';
+  ctx.textAlign='left';ctx.textBaseline='top';ctx.fillText('🎯 适配方向',boxX+padL,startY+padT);
+  ctx.fillStyle='#475569';ctx.font=dsSize+'px "PingFang SC","Microsoft YaHei",sans-serif';
+  shownLines.forEach(function(l,i){ctx.fillText(l,boxX+padL,startY+padT+titleH+i*lineH);});
+  if(ls.length>2){ctx.fillStyle='#94A3B8';ctx.font=Math.round(W*0.022)+'px "PingFang SC","Microsoft YaHei",sans-serif';ctx.fillText('…更多见完整报告',boxX+padL,startY+padT+titleH+shownLines.length*lineH);}
+  ctx.textBaseline='alphabetic';
+  return startY+totalH;
+}
 function drawCommonHeader(ctx,arch,W,H,emojiSize,nameSize,subSize){
   ctx.textAlign='center';
   ctx.font=emojiSize+'px sans-serif';
@@ -818,30 +905,7 @@ function drawDimBars(ctx,W,startY,barW,barH,gap,labelSize,scoreSize,labelX,arch)
     ctx.textAlign='left';ctx.fillText(scores[i]+'分',labelX+barW*1.12,y+barH*0.65);
     ctx.textAlign='right';
   }
-  // 人格一句话总结 - 加大卡片
   let nextY=startY+5*gap;
-  if(arch&&arch.tagline){
-    const sumY=nextY+gap*0.4;
-    const sumW=W*0.86,sumH=gap*1.1,sumX=(W-sumW)/2;
-    // 渐变背景
-    const grad=ctx.createLinearGradient(sumX,sumY,sumX+sumW,sumY);
-    grad.addColorStop(0,'rgba(81,98,240,0.12)');
-    grad.addColorStop(1,'rgba(124,58,237,0.12)');
-    ctx.fillStyle=grad;
-    ctx.roundRect(sumX,sumY,sumW,sumH,sumH*0.2);ctx.fill();
-    // 边框
-    ctx.strokeStyle='rgba(81,98,240,0.3)';ctx.lineWidth=1.5;
-    ctx.roundRect(sumX,sumY,sumW,sumH,sumH*0.2);ctx.stroke();
-    // 引言标点
-    ctx.fillStyle='#5162F0';ctx.font='bold '+Math.round(labelSize*1.1)+'px Georgia,serif';
-    ctx.textAlign='left';ctx.fillText('"',sumX+sumH*0.3,sumY+sumH*0.4);
-    ctx.fillText('"',sumX+sumW-sumH*0.3,sumY+sumH*0.85);
-    // 文字
-    ctx.fillStyle='#3730A3';ctx.font='bold '+Math.round(labelSize*1.05)+'px "PingFang SC","Microsoft YaHei",sans-serif';
-    ctx.textAlign='center';
-    ctx.fillText(arch.tagline,W/2,sumY+sumH*0.55);
-    nextY=sumY+sumH;
-  }
   // 剖面形状提示
   let hint='';
   if(isFlat){
@@ -857,52 +921,69 @@ function drawDimBars(ctx,W,startY,barW,barH,gap,labelSize,scoreSize,labelX,arch)
   return hintY+hintH;
 }
 
-function drawCTA(ctx,W,ctaY,ctaW,ctaH,titleSize,descSize){
-  ctx.fillStyle='#EEF2FF';ctx.roundRect((W-ctaW)/2,ctaY,ctaW,ctaH,ctaH*0.18);ctx.fill();
-  ctx.fillStyle='#5162F0';ctx.font='bold '+titleSize+'px "PingFang SC","Microsoft YaHei",sans-serif';
-  ctx.textAlign='center';ctx.fillText('测测你的财富人格',W/2,ctaY+ctaH*0.4);
-  ctx.fillStyle='#64748B';ctx.font=descSize+'px "PingFang SC","Microsoft YaHei",sans-serif';
-  ctx.fillText('60道量表 · 5维剖面 · 18种原型',W/2,ctaY+ctaH*0.7);
+function drawCTA(ctx,W,H,ctaY,ctaW,ctaH,titleSize,descSize){
+  const maxBottom=H-Math.round(H*0.06);
+  ctaH=Math.min(ctaH, maxBottom-ctaY-2);
+  if(ctaH<26)ctaH=26;
+  const bx=(W-ctaW)/2, by=ctaY, r=ctaH*0.22;
+  ctx.fillStyle='#EEF2FF';_rr(ctx,bx,by,ctaW,ctaH,r);ctx.fill();
+  ctx.strokeStyle='rgba(81,98,240,0.35)';ctx.lineWidth=1.5;ctx.stroke();
+  const tS=Math.min(titleSize,Math.round(ctaH*0.32));
+  const dS=Math.min(descSize,Math.round(ctaH*0.24));
+  ctx.fillStyle='#5162F0';ctx.font='bold '+tS+'px "PingFang SC","Microsoft YaHei",sans-serif';
+  ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('测测你的财富人格',W/2,ctaY+ctaH*0.37);
+  ctx.fillStyle='#64748B';ctx.font=dS+'px "PingFang SC","Microsoft YaHei",sans-serif';
+  ctx.fillText('60道量表 · 5维剖面 · 18种原型',W/2,ctaY+ctaH*0.72);ctx.textBaseline='alphabetic';
 }
 
-function drawFooter(ctx,W,H,size){
-  ctx.fillStyle='#94A3B8';ctx.font=size+'px "PingFang SC","Microsoft YaHei",sans-serif';
-  ctx.textAlign='center';ctx.fillText('职业财富人格测评 · 找到你的搞钱操作系统',W/2,H-Math.round(H*0.05));
-  ctx.fillStyle='#5162F0';ctx.font='bold '+size+'px "PingFang SC","Microsoft YaHei",sans-serif';
-  ctx.fillText('来自 @拾光天赋',W/2,H-Math.round(H*0.02));
+function drawFooter(ctx,W,H,size,minTop){
+  const line2Y=H-Math.round(H*0.025);
+  const line1Y=line2Y-Math.round(size*1.6);
+  if(typeof minTop==='number' && line1Y<minTop+Math.round(size*0.6)){
+    // not enough room above the CTA — draw a single compact line
+    ctx.fillStyle='#5162F0';ctx.font='bold '+size+'px "PingFang SC","Microsoft YaHei",sans-serif';
+    ctx.textAlign='center';ctx.fillText('来自 @拾光天赋',W/2,line2Y);
+  }else{
+    ctx.fillStyle='#94A3B8';ctx.font=size+'px "PingFang SC","Microsoft YaHei",sans-serif';
+    ctx.textAlign='center';ctx.fillText('职业财富人格测评 · 找到你的搞钱操作系统',W/2,line1Y);
+    ctx.fillStyle='#5162F0';ctx.font='bold '+size+'px "PingFang SC","Microsoft YaHei",sans-serif';
+    ctx.fillText('来自 @拾光天赋',W/2,line2Y);
+  }
 }
 
 function drawSquareLayout(ctx,arch,W,H){
-  const emojiS=120,nameS=56,subS=28;
+  const emojiS=Math.round(H*0.12),nameS=Math.round(H*0.05),subS=Math.round(H*0.025);
   const barsY=drawCommonHeader(ctx,arch,W,H,emojiS,nameS,subS);
-  const barW=W*0.5,barH=24,gap=42,labelX=W*0.27,labelS=20,scoreS=18;
-  const afterBars=drawDimBars(ctx,W,barsY,barW,barH,gap,labelS,scoreS,labelX,arch);
-  const ctaY=afterBars+gap*0.3,ctaW=W*0.74,ctaH=H*0.1;
-  drawCTA(ctx,W,ctaY,ctaW,ctaH,26,20);
-  drawFooter(ctx,W,H,18);
+  const afterStrengths=drawStrengths(ctx,W,H,barsY+Math.round(H*0.006),arch,1);
+  const barW=W*0.5,barH=Math.round(H*0.03),gap=Math.round(H*0.04),labelX=W*0.27,labelS=Math.round(H*0.026),scoreS=Math.round(H*0.024);
+  const afterBars=drawDimBars(ctx,W,afterStrengths+Math.round(H*0.012),barW,barH,gap,labelS,scoreS,labelX,arch);
+  const ctaY=afterBars+Math.round(H*0.014),ctaW=W*0.74,ctaH=Math.round(H*0.082);
+  drawCTA(ctx,W,H,ctaY,ctaW,ctaH,Math.round(H*0.032),Math.round(H*0.025));
+  drawFooter(ctx,W,H,Math.round(H*0.022),ctaY+ctaH);
 }
 
 function drawPortraitLayout(ctx,arch,W,H){
-  const emojiS=Math.round(H*0.14),nameS=Math.round(H*0.06),subS=Math.round(H*0.03);
+  const emojiS=Math.round(H*0.10),nameS=Math.round(H*0.05),subS=Math.round(H*0.025);
   const barsY=drawCommonHeader(ctx,arch,W,H,emojiS,nameS,subS);
-  const barW=W*0.52,barH=Math.round(H*0.024),gap=Math.round(H*0.048),labelX=W*0.24,labelS=Math.round(H*0.022),scoreS=Math.round(H*0.02);
-  const afterBars=drawDimBars(ctx,W,barsY,barW,barH,gap,labelS,scoreS,labelX,arch);
-  const ctaY=afterBars+gap*0.3,ctaW=W*0.78,ctaH=H*0.09;
-  drawCTA(ctx,W,ctaY,ctaW,ctaH,Math.round(H*0.026),Math.round(H*0.02));
-  drawFooter(ctx,W,H,Math.round(H*0.018));
+  const afterStrengths=drawStrengths(ctx,W,H,barsY+Math.round(H*0.006),arch,2);
+  const barW=W*0.52,barH=Math.round(H*0.024),gap=Math.round(H*0.034),labelX=W*0.24,labelS=Math.round(H*0.022),scoreS=Math.round(H*0.02);
+  const afterBars=drawDimBars(ctx,W,afterStrengths+Math.round(H*0.012),barW,barH,gap,labelS,scoreS,labelX,arch);
+  const afterCareer=drawCareerChip(ctx,W,H,afterBars+Math.round(H*0.012),arch);
+  const ctaY=afterCareer+Math.round(H*0.014),ctaW=W*0.78,ctaH=Math.round(H*0.07);
+  drawCTA(ctx,W,H,ctaY,ctaW,ctaH,Math.round(H*0.026),Math.round(H*0.02));
+  drawFooter(ctx,W,H,Math.round(H*0.018),ctaY+ctaH);
 }
 
 function drawVerticalLayout(ctx,arch,W,H){
-  const emojiS=Math.round(H*0.14),nameS=Math.round(H*0.058),subS=Math.round(H*0.028);
+  const emojiS=Math.round(H*0.10),nameS=Math.round(H*0.05),subS=Math.round(H*0.024);
   const barsY=drawCommonHeader(ctx,arch,W,H,emojiS,nameS,subS);
-  const barW=W*0.55,barH=Math.round(H*0.024),gap=Math.round(H*0.054),labelX=W*0.22,labelS=Math.round(H*0.024),scoreS=Math.round(H*0.022);
-  const afterBars=drawDimBars(ctx,W,barsY,barW,barH,gap,labelS,scoreS,labelX,arch);
-  const ctaY=afterBars+gap*0.3,ctaW=W*0.82,ctaH=H*0.09;
-  drawCTA(ctx,W,ctaY,ctaW,ctaH,Math.round(H*0.028),Math.round(H*0.022));
-  // Extra spacing for vertical format
-  ctx.fillStyle='#5162F0';ctx.font='bold '+Math.round(H*0.026)+'px "PingFang SC","Microsoft YaHei",sans-serif';
-  ctx.textAlign='center';ctx.fillText('保存图片 → 打开抖音 → 发布图文',W/2,ctaY+ctaH+H*0.06);
-  drawFooter(ctx,W,H,Math.round(H*0.02));
+  const afterStrengths=drawStrengths(ctx,W,H,barsY+Math.round(H*0.006),arch,2);
+  const barW=W*0.55,barH=Math.round(H*0.024),gap=Math.round(H*0.036),labelX=W*0.22,labelS=Math.round(H*0.024),scoreS=Math.round(H*0.022);
+  const afterBars=drawDimBars(ctx,W,afterStrengths+Math.round(H*0.012),barW,barH,gap,labelS,scoreS,labelX,arch);
+  const afterCareer=drawCareerChip(ctx,W,H,afterBars+Math.round(H*0.012),arch);
+  const ctaY=afterCareer+Math.round(H*0.014),ctaW=W*0.82,ctaH=Math.round(H*0.07);
+  drawCTA(ctx,W,H,ctaY,ctaW,ctaH,Math.round(H*0.028),Math.round(H*0.022));
+  drawFooter(ctx,W,H,Math.round(H*0.02),ctaY+ctaH);
 }
 
 function copyShareLink(){
